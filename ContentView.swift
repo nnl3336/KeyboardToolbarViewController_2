@@ -90,6 +90,12 @@ class DetailViewController: UIViewController {
     let bottomToolbar = UIToolbar()
     var bottomConstraint: NSLayoutConstraint!
 
+    // MARK: - 下ラベル
+    var countLabelBottom: NSLayoutConstraint!
+    var dateLabelBottom: NSLayoutConstraint!
+    private var dateLabel: UILabel!
+    private var countLabel: UILabel!
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -108,32 +114,65 @@ class DetailViewController: UIViewController {
         bottomToolbar.items = [flexible, done]
         view.addSubview(bottomToolbar)
 
+        // 下ラベル
+        setupLabels()
+
         // Auto Layout
         bottomConstraint = bottomToolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         NSLayoutConstraint.activate([
             textView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            textView.bottomAnchor.constraint(equalTo: bottomToolbar.topAnchor, constant: -8),
+            textView.bottomAnchor.constraint(equalTo: countLabel.topAnchor, constant: -8),
 
             bottomToolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomToolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomConstraint,
-            bottomToolbar.heightAnchor.constraint(equalToConstant: 44)
+            bottomToolbar.heightAnchor.constraint(equalToConstant: 44),
+
+            countLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            countLabel.bottomAnchor.constraint(equalTo: bottomToolbar.topAnchor, constant: -4),
+
+            dateLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            dateLabel.bottomAnchor.constraint(equalTo: bottomToolbar.topAnchor, constant: -4),
+            countLabel.centerYAnchor.constraint(equalTo: dateLabel.centerYAnchor)
         ])
 
-        // キーボード通知でボトムツールバーを上げる
+        // キーボード通知
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
 
         textView.becomeFirstResponder()
     }
-    
 
+    // MARK: - 下ラベルセットアップ
+    private func setupLabels() {
+        // 文字数ラベル（左）
+        countLabel = UILabel()
+        countLabel.translatesAutoresizingMaskIntoConstraints = false
+        countLabel.font = UIFont.systemFont(ofSize: 14)
+        countLabel.textColor = .black   // ← ここを .black に
+        countLabel.textAlignment = .left
+        countLabel.text = "0文字"
+
+        // 日付ラベル（右）
+        dateLabel = UILabel()
+        dateLabel.translatesAutoresizingMaskIntoConstraints = false
+        dateLabel.font = UIFont.systemFont(ofSize: 14)
+        dateLabel.textColor = .black    // ← ここも .black に
+        dateLabel.textAlignment = .right
+        dateLabel.text = "----/--/-- --:--"
+
+        view.addSubview(countLabel)
+        view.addSubview(dateLabel)
+    }
+
+    // MARK: - Doneボタン
     @objc private func doneTapped() {
         view.endEditing(true)
     }
 
+    // MARK: - Keyboard
     @objc private func keyboardWillShow(_ notification: Notification) {
         if let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double {
